@@ -27,6 +27,11 @@ import androidx.compose.ui.unit.dp
 // Material 3のボタンUI（Button）を使用するために必要
 import androidx.compose.material3.Button
 
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,7 +40,7 @@ class MainActivity : ComponentActivity() {
             CalculatorTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     // innerPadding を渡すことで、画面上下のステータスバーやバーとの被りを防止します
-                    CulculatorScreen(
+                    CalculatorScreen(
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
@@ -48,16 +53,31 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun CalculatorPreview() {
     CalculatorTheme {
-        CulculatorScreen()
+        CalculatorScreen()
     }
 }
 
-fun add(a: Int, b: Int): Int {
-    return a + b
+
+fun add(a: Double, b: Double): Double = a + b
+fun sub(a: Double, b: Double): Double = a - b
+fun mul(a: Double, b: Double): Double = a * b
+fun div(a: Double, b: Double): String {
+    return if (b == 0.0) {
+        "エラー (0で割れません) "
+    } else {
+        formatResult(a / b)
+    }
+}
+fun formatResult(value: Double): String {
+    return if (value % 1.0 == 0.0) {
+        value.toLong().toString()
+    } else {
+        value.toString()
+    }
 }
 
 @Composable
-fun CulculatorScreen(modifier: Modifier = Modifier) {
+fun CalculatorScreen(modifier: Modifier = Modifier) {
     var inputA by remember { mutableStateOf("") }
     var inputB by remember { mutableStateOf("") }
     var result by remember { mutableStateOf("") }
@@ -68,21 +88,51 @@ fun CulculatorScreen(modifier: Modifier = Modifier) {
             onValueChange = { inputA = it },
             label = { Text("1つ目の数字") }
         )
+        Spacer(modifier = Modifier.height(8.dp))
 
         TextField(
             value = inputB,
             onValueChange = { inputB = it },
             label = { Text("2つ目の数字") }
         )
+        Spacer(modifier = Modifier.height(16.dp))
 
-        Button(onClick = {
-            // 空文字のままボタンを押してもアプリがクラッシュしないよう safely に数値変換（toIntOrNull）
-            val a = inputA.toIntOrNull() ?: 0
-            val b = inputB.toIntOrNull() ?: 0
-            result = add(a, b).toString()
-        }) {
-            Text("足し算")
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(onClick = {
+                val a = inputA.toDoubleOrNull() ?: 0.0
+                val b = inputB.toDoubleOrNull() ?: 0.0
+                result = formatResult(add(a,b))
+            }) {
+                Text("+")
+            }
+
+            Button(onClick = {
+                val a = inputA.toDoubleOrNull() ?:0.0
+                val b = inputB.toDoubleOrNull() ?:0.0
+                result = formatResult(sub(a, b))
+            }) {
+                Text("-")
+            }
+
+            Button(onClick = {
+                val a = inputA.toDoubleOrNull() ?:0.0
+                val b = inputB.toDoubleOrNull() ?:0.0
+                result = formatResult(mul(a, b))
+            }) {
+                Text("*")
+            }
+
+            Button(onClick = {
+                val a = inputA.toDoubleOrNull() ?: 0.0
+                val b = inputB.toDoubleOrNull() ?: 0.0
+                result = div(a, b)
+            }) {
+                Text("÷")
+            }
         }
+
+        Spacer(modifier = Modifier .height (16.dp))
+
         Text("結果: $result")
     }
 }
